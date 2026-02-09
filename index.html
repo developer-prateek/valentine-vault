@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Eternal Vault | Perfect Interaction</title>
+    <title>The Eternal Vault | Senior Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -11,17 +11,27 @@
             --bg-base: #0a0a1a;
         }
 
+        /* Fixed the mobile height issue using dvh */
         body, html {
-            margin: 0; padding: 0; height: 100%;
+            margin: 0; padding: 0; 
+            min-height: 100dvh; 
+            width: 100%;
             font-family: 'Quicksand', sans-serif;
             background: var(--bg-base);
             color: white;
+            overflow-x: hidden;
             transition: background 1.2s ease;
         }
 
-        canvas { position: fixed; inset: 0; z-index: -1; }
+        /* Canvas stays fixed and covers dynamic height */
+        canvas { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100dvh; 
+            z-index: -1; 
+            pointer-events: none;
+        }
 
-        /* Stage 1: Gate */
         #gate {
             position: fixed; inset: 0;
             display: flex; justify-content: center; align-items: center;
@@ -39,13 +49,13 @@
             max-width: 450px;
         }
 
-        /* Stage 2: Vault UI */
         #vault-ui {
             display: none;
             opacity: 0;
             padding: 40px 20px;
             text-align: center;
-            height: 200vh;
+            min-height: 100dvh;
+            box-sizing: border-box;
             transition: opacity 0.5s ease, transform 0.5s ease;
             z-index: 1000;
         }
@@ -65,7 +75,6 @@
 
         .locked { opacity: 0.2; cursor: not-allowed; }
 
-        /* Stage 3: Reveal Overlay */
         #reveal-overlay {
             display: none;
             position: fixed;
@@ -90,7 +99,9 @@
         .reveal-text {
             display: flex; flex-wrap: wrap; justify-content: center;
             max-width: 900px; font-size: clamp(1.4rem, 4vw, 2.2rem);
-            line-height: 1.6; text-align: center; gap: 0.7rem;
+            line-height: 1.6; text-align: center; 
+            /* Added gap for spacing */
+            gap: 0.7rem; 
         }
 
         .word {
@@ -110,10 +121,8 @@
         .btn-yes {
             background: var(--accent); color: white; border: none;
             padding: 15px 60px; font-size: 1.3rem; border-radius: 50px; cursor: pointer;
-            z-index: 3001;
         }
 
-        /* The No Button Initial Styling */
         #no-btn { 
             background: rgba(255,255,255,0.1); 
             color: white; 
@@ -121,8 +130,7 @@
             padding: 10px 30px; 
             border-radius: 50px; 
             cursor: pointer;
-            transition: transform 0.1s ease;
-            z-index: 4000; /* Ensure it's above the gate card when it moves */
+            z-index: 4000;
         }
     </style>
 </head>
@@ -160,7 +168,8 @@
         let currentTheme = { bg: '#0a0a1a', bokeh: 'rgba(255, 77, 109, 0.15)' };
 
         function initCanvas() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight;
             circles = [];
             for (let i = 0; i < 25; i++) {
                 circles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: Math.random() * 150 + 50, dx: (Math.random() - 0.5) * 0.4, dy: (Math.random() - 0.5) * 0.4 });
@@ -179,40 +188,32 @@
             });
             requestAnimationFrame(draw);
         }
-        initCanvas(); 
-        draw();
+        initCanvas(); draw();
+        window.addEventListener('resize', initCanvas);
 
-        // --- 2. THE EVASIVE NO BUTTON (THE FIX) ---
+        // --- 2. THE EVASIVE NO BUTTON ---
         const noBtn = document.getElementById('no-btn');
         let hasMoved = false;
 
         function moveNoButton() {
             if (!hasMoved) {
-                // Remove from local flex box and make it free-roaming
                 noBtn.style.position = 'fixed';
                 hasMoved = true;
             }
-            
-            // Calculate a safe range so it doesn't leave the screen
             const maxX = window.innerWidth - noBtn.offsetWidth - 20;
             const maxY = window.innerHeight - noBtn.offsetHeight - 20;
-            
             const randomX = Math.max(10, Math.floor(Math.random() * maxX));
             const randomY = Math.max(10, Math.floor(Math.random() * maxY));
-            
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
 
         noBtn.addEventListener('mouseover', moveNoButton);
-        noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Stop actual click on mobile
-            moveNoButton();
-        });
+        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNoButton(); });
 
-        // --- 3. UI LOGIC ---
+        // --- 3. LOGIC ---
         function unlock() {
-            noBtn.style.display = 'none'; // Hide the "No" button forever
+            noBtn.style.display = 'none';
             const g = document.getElementById('gate');
             g.style.opacity = '0';
             g.style.transform = 'scale(1.1)';
@@ -220,8 +221,10 @@
                 g.style.display = 'none';
                 const v = document.getElementById('vault-ui');
                 v.style.display = 'block';
-                setTimeout(() => v.style.opacity = '1', 10);
-                renderGrid();
+                setTimeout(() => {
+                    v.style.opacity = '1';
+                    renderGrid();
+                }, 10);
             }, 800);
         }
 
@@ -264,12 +267,16 @@
                 title.innerText = item.n;
                 textCont.innerHTML = '';
                 setTimeout(() => title.classList.add('active'), 100);
+                
+                // Fixed spacing by appending text nodes
                 item.w.split(' ').forEach((word, i) => {
                     const span = document.createElement('span');
                     span.innerText = word;
                     span.className = 'word';
                     span.style.transitionDelay = `${(i * 0.1) + 0.5}s`;
                     textCont.appendChild(span);
+                    // Add physical space
+                    textCont.appendChild(document.createTextNode(' '));
                     setTimeout(() => span.classList.add('active'), 100);
                 });
             }, 500);
@@ -284,10 +291,4 @@
         }
     </script>
 </body>
-
 </html>
-
-
-
-
-
