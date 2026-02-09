@@ -16,7 +16,6 @@
             font-family: 'Quicksand', sans-serif;
             background: var(--bg-base);
             color: white;
-            overflow: hidden;
             transition: background 1.2s ease;
         }
 
@@ -180,7 +179,8 @@
             });
             requestAnimationFrame(draw);
         }
-        initCanvas(); draw();
+        // initCanvas(); 
+        // draw();
 
         // --- 2. THE EVASIVE NO BUTTON (THE FIX) ---
         const noBtn = document.getElementById('no-btn');
@@ -284,4 +284,5 @@
         }
     </script>
 </body>
+
 </html>
